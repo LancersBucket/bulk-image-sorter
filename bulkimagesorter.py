@@ -7,7 +7,6 @@ import dearpygui.dearpygui as dpg
 
 class Global:
     """Configuration and global variables."""
-
     VERSION = "Bulk Image Sorter v1.0.0"
 
     source_folder = "images"
