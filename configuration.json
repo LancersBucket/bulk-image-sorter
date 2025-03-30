@@ -1,0 +1,21 @@
+{
+    "source_folder": "images",
+    "destination_folders": {
+        "1": {
+            "label": "Accept",
+            "path": "accept"
+        },
+        "2": {
+            "label": "Needs Cropping",
+            "path": "needs_cropping"
+        },
+        "3": {
+            "label": "Needs Further Review",
+            "path": "needs_review"
+        },
+        "4": {
+            "label": "Reject",
+            "path": "reject"
+        }
+    }
+}

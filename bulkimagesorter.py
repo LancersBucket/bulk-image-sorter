@@ -1,4 +1,5 @@
 """Bulk Image Sorter"""
+import json
 import os
 import shutil
 from sys import exit as sys_exit
@@ -12,19 +13,17 @@ class Global:
     VERSION = "Bulk Image Sorter v1.1.0-DEV"
 
     # Configuration
-    source_folder = "images"
-    destination_folders = {
-        "1": "Accept",
-        "2": "Needs Cropping",
-        "3": "Needs Review",
-        "4": "Reject",
-    }
-    image_extensions = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"]
+    with open('configuration.json', 'r', encoding="UTF-8") as file:
+        config = json.load(file)
+
+    source_folder = config["source_folder"]
+    destination_folders = config["destination_folders"]
 
     # Flags
     key_pressed = False
 
     # Global variables
+    image_extensions = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"]
     current_index = 0
     image_files = []
 
@@ -82,7 +81,7 @@ def move_image(img_key: str) -> None:
     if Global.current_index < len(Global.image_files):
         image_path = Global.image_files[Global.current_index]
         if img_key in Global.destination_folders:
-            dest_folder = Global.destination_folders[img_key]
+            dest_folder = Global.destination_folders[img_key]["path"]
             dest_folder_path = os.path.join(Global.source_folder, dest_folder)
             shutil.move(image_path, os.path.join(dest_folder_path, os.path.basename(image_path)))
             Global.current_index += 1
@@ -105,8 +104,9 @@ if __name__ == "__main__":
     dpg.setup_dearpygui()
 
     # Create destination folders
-    for folder in Global.destination_folders.values():
-        os.makedirs(os.path.join(Global.source_folder,folder), exist_ok=True)
+    for folder in Global.destination_folders:
+        os.makedirs(os.path.join(Global.source_folder,Global.destination_folders[folder]["path"]),
+                    exist_ok=True)
 
     # Get list of images
     for ext in Global.image_extensions:
@@ -116,8 +116,8 @@ if __name__ == "__main__":
     with dpg.window(tag="Key Guide", no_resize=True, no_title_bar=True,
                     no_move=True,no_collapse=True, width=289):
         dpg.add_text("Key Guide:")
-        for key, folder in Global.destination_folders.items():
-            dpg.add_text(f"  {key}: {folder}")
+        for key in Global.destination_folders:
+            dpg.add_text(f"  {key}: {Global.destination_folders[key]["label"]}")
 
         dpg.add_spacer()
         dpg.add_spacer()
