@@ -34,6 +34,9 @@ def load_next_image() -> None:
     dpg.delete_item(f"texture_{Global.current_index-1}")
     dpg.delete_item("LevelsHistogram_Data")
     dpg.delete_item("ImagePreview", children_only=True)
+    dpg.set_value("WxH","")
+    for cat in imd.ImageMetadata(None).get_metadata():
+        dpg.set_value(f'Meta_{cat}', "")
 
     # If there are still more images
     if Global.current_index < len(Global.image_files):
@@ -42,9 +45,14 @@ def load_next_image() -> None:
         # Load the next image along with all the metadata
         dpg.set_value("ImagePath", f"Image: {image_path}")
 
-        dpg.add_line_series(list(range(256)), imd.get_image_histogram(image_path),
+        image_meta = imd.ImageMetadata(image_path)
+
+        dpg.add_line_series(list(range(256)), image_meta.get_histogram(),
                             tag="LevelsHistogram_Data", parent="LevelsHistogram_Y")
         dpg.bind_item_theme("LevelsHistogram_Data", "plot_theme")
+
+        for item in image_meta.get_metadata().items():
+            dpg.set_value(f'Meta_{item[0]}', item[1])
 
         # Load the image
         image_data = dpg.load_image(image_path)
@@ -54,6 +62,9 @@ def load_next_image() -> None:
         scale = min(975 / width, 650 / height)
         scaled_width = int(width * scale)
         scaled_height = int(height * scale)
+
+        dpg.set_value("WxH",f"{width} x {height} (Displaying {scaled_width} x {scaled_height})")
+
 
         # Add the image to the texture registry
         with dpg.texture_registry():
@@ -126,23 +137,36 @@ if __name__ == "__main__":
             dpg.add_plot_axis(dpg.mvYAxis, no_tick_labels=True, no_gridlines=True,
                               no_tick_marks=True, tag="LevelsHistogram_Y")
 
+        dpg.add_text("",tag="WxH")
+
+        with dpg.table(tag="MetadataTable", header_row=False, resizable=False):
+            dpg.add_table_column()
+            dpg.add_table_column()
+
+            for key in imd.ImageMetadata(None).get_metadata():
+                with dpg.table_row():
+                    with dpg.table_cell():
+                        dpg.add_text(f'{key}:')
+                    with dpg.table_cell():
+                        dpg.add_text(tag=f"Meta_{key}")
+
         # Move the window to the right of the display
         dpg.set_item_pos("Key Guide", [990, 0])
 
     # Image Preview Window
     with dpg.window(tag="Image Sorter", width=991, no_resize=True,
-                    no_title_bar=True, no_move=True, no_collapse=True):
+                    no_title_bar=True, no_move=True, no_collapse=True,
+                    no_scrollbar=True, no_scroll_with_mouse=True):
         dpg.add_text(label="", tag="ImagePath")
         dpg.add_child_window(tag="ImagePreview",width=975,
                             height=650,border=False)
+
         dpg.set_item_pos("Image Sorter", [0, 0])
 
     # Key Callbacks
     for key in Global.destination_folders:
         # Convert string rep of the key to mvKey_* constant
         mvkey = mvkl.string_to_mvkey(key)
-
-        print(f"Key: {key} -> mvKey: {mvkey}")
 
         if mvkey is None:
             raise ValueError(f'Key {key} is not a valid key. Only alphanumeric keys are supported.')
