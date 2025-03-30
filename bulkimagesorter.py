@@ -14,7 +14,7 @@ def path(pth: str) -> str:
 
 class Global:
     """Configuration and global variables."""
-    VERSION = "Bulk Image Sorter v1.1.0-DEV"
+    VERSION = "Bulk Image Sorter v1.1.0"
 
     # Configuration
     try:
