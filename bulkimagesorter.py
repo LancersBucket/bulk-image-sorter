@@ -31,7 +31,7 @@ class Global:
                     "4": { "label": "Reject", "path": "reject" }
                 }
             }
-            json.dump(default_config, file)
+            json.dump(default_config, file, indent=4)
             config = default_config
 
     source_folder = config["source_folder"]
