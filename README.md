@@ -6,4 +6,3 @@ A simple program designed to assist sorting through photos.
 # TODO
 - Add a GUI to allow user defined destination folders
 - Add another window for displaying photo metadata
-    - Add a levels histogram
