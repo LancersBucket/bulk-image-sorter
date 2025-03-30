@@ -1,7 +1,12 @@
 """Gets the metadata of an image file."""
+import os
 from PIL import Image
 from numpy import array as np_array
 import exifread
+
+def path(pth: str) -> str:
+    """ Get the absolute path to a resource, works for PyInstaller and script mode."""
+    return os.path.join(os.getcwd(), pth)
 
 class ImageMetadata:
     """Class to get the metadata of an image file."""
@@ -30,7 +35,7 @@ class ImageMetadata:
     def _get_image_histogram(self, image_path: str) -> list:
         """Gets histogram data of an image."""
         histogram = []
-        with Image.open(image_path) as img:
+        with Image.open(path(image_path)) as img:
             image = img.convert("L")  # Convert to grayscale
             histogram = np_array(image.histogram()).tolist()
 
@@ -40,7 +45,7 @@ class ImageMetadata:
         """Gets the metadata of an image file.
         Returns camera, iso, f-stop, and exposure."""
         # Open the image file in binary mode and read metadata using exifread
-        with open(image_path, "rb") as f:
+        with open(path(image_path), "rb") as f:
             tags = exifread.process_file(f)
 
         self.meta["Camera"] = tags.get("Image Model", "Unknown")

@@ -8,13 +8,31 @@ import dearpygui.dearpygui as dpg
 import imagemetadata as imd
 import mvkeylookup as mvkl
 
+def path(pth: str) -> str:
+    """ Get the absolute path to a resource, works for PyInstaller and script mode."""
+    return os.path.join(os.getcwd(), pth)
+
 class Global:
     """Configuration and global variables."""
     VERSION = "Bulk Image Sorter v1.1.0-DEV"
 
     # Configuration
-    with open('configuration.json', 'r', encoding="UTF-8") as file:
-        config = json.load(file)
+    try:
+        with open(path('configuration.json'), 'r', encoding="UTF-8") as file:
+            config = json.load(file)
+    except FileNotFoundError:
+        with open(path("configuration.json"), 'w', encoding="UTF-8") as file:
+            default_config = {
+                "source_folder": "images",
+                "destination_folders": {
+                    "1": { "label": "Accept", "path": "accept" },
+                    "2": { "label": "Needs Cropping", "path": "needs_cropping" },
+                    "3": { "label": "Needs Further Review", "path": "needs_review" },
+                    "4": { "label": "Reject", "path": "reject" }
+                }
+            }
+            json.dump(default_config, file)
+            config = default_config
 
     source_folder = config["source_folder"]
     destination_folders = config["destination_folders"]
@@ -44,7 +62,7 @@ def load_next_image() -> None:
         # Load the next image along with all the metadata
         dpg.set_value("ImagePath", f"Image: {image_path}")
 
-        image_meta = imd.ImageMetadata(image_path)
+        image_meta = imd.ImageMetadata(path(image_path))
 
         dpg.add_line_series(list(range(256)), image_meta.get_histogram(),
                             tag="LevelsHistogram_Data", parent="LevelsHistogram_Y")
@@ -79,7 +97,7 @@ def move_image(img_key: str) -> None:
     """Move the current image to the corresponding folder."""
     img_key = mvkl.mvkey_to_string(img_key[0])
     if Global.current_index < len(Global.image_files):
-        image_path = Global.image_files[Global.current_index]
+        image_path = path(Global.image_files[Global.current_index])
         if img_key in Global.destination_folders:
             dest_folder = Global.destination_folders[img_key]["path"]
             dest_folder_path = os.path.join(Global.source_folder, dest_folder)
